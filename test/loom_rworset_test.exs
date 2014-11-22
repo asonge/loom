@@ -1,6 +1,6 @@
-defmodule LoomAworsetTest do
+defmodule LoomRworsetTest do
   use ExUnit.Case
-  use Loom
+  alias Loom.RWORSet, as: Set
 
   test "Basic add to set" do
     {set, _} = Set.new |> Set.add(:a, 1)
@@ -9,23 +9,17 @@ defmodule LoomAworsetTest do
     assert false == Set.member?(set, 2)
   end
 
-  test "Precondition fail" do
-    assert_raise Loom.PreconditionError, fn ->
-      Set.new |> Set.remove(1)
-    end
-  end
-
   test "See if we can remove" do
     {set, _} = Set.new |> Set.add(:a, 1)
     assert true == Set.member?(set, 1)
-    {set, _} = Set.remove(set, 1)
+    {set, _} = Set.remove(set, :a, 1)
     assert false == Set.member?(set, 1)
   end
 
   test "Add/remove/add" do
     {set, _} = Set.new |> Set.add(:a, 1)
     assert true == Set.member?(set, 1)
-    {set, _} = Set.remove(set, 1)
+    {set, _} = Set.remove(set, :a, 1)
     assert false == Set.member?(set, 1)
     {set, _} = Set.add(set, :a, 1)
     assert true == Set.member?(set, 1)
@@ -45,7 +39,7 @@ defmodule LoomAworsetTest do
   test "Simple merge + commutivity of sets and deltas + remove" do
     {setA, deltaA} = Set.new |> Set.add(:a, 1)
     {setB, deltaB} = Set.new |> Set.add(:b, 2)
-    {setA, deltaA} = Set.remove({Set.join(setA, setB), deltaA}, 2)
+    {setA, deltaA} = Set.remove({Set.join(setA, setB), deltaA}, :a, 2)
     setAB = Set.join(setA, setB)
     assert [1] == setAB |> Set.read
     assert setAB == Set.join(setB, setA)
@@ -57,7 +51,7 @@ defmodule LoomAworsetTest do
     {setA, deltaA} = Set.new |> Set.add(:a, 1) |> Set.add(:a, 3)
     {setB, deltaB} = Set.new |> Set.add(:b, 1) |> Set.add(:b, 2)
     assert [1,2,3] = Set.join(setA, deltaB) |> Set.read |> Enum.sort
-    {setA2, deltaA2} = Set.join(setA, deltaB) |> Set.remove(2)
+    {setA2, deltaA2} = Set.join(setA, deltaB) |> Set.remove(:a, 2)
     assert [1,3] = setA2 |> Set.read |> Enum.sort
     setB2 = Set.join(setB, deltaA2)
     assert [1] = setB2 |> Set.read |> Enum.sort

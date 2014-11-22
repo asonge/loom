@@ -83,10 +83,15 @@ defmodule Loom.Dots do
   @spec remove(t, value) :: {t, t}
   @spec remove({t, t}, value) :: {t, t}
   def remove(%Dots{}=dots, value), do: remove({dots, Dots.new}, value)
-  def remove({%Dots{dots: d}=dots, delta_dots}, value) do
-    {new_d, delta_cloud} = Enum.reduce(d, {%{}, []}, fn
-      ({dot, v}, {d, cloud}) when value==v -> {d, [dot|cloud]} # Don't reinsert dot/value,
-      ({dot, no_match}, {d, cloud}) -> {Dict.put(d, dot, no_match), cloud}
+  def remove({%Dots{dots: d}=dots, delta_dots}, pred) when is_function(pred) do
+    {new_d, delta_cloud} = Enum.reduce(d, {%{}, []}, fn ({dot, v}, {d, cloud}) ->
+      if pred.(v) do
+        # Don't reinsert dot/value, add dot to cloud for causation
+        {d, [dot|cloud]}
+      else
+        # Reinsert, don't worry about causation dot
+        {Dict.put(d, dot, v), cloud}
+      end
     end)
     new_dots = %Dots{dots|dots: new_d}
     new_delta = %Dots{cloud: delta_cloud}
@@ -94,6 +99,7 @@ defmodule Loom.Dots do
              |> compact
     {new_dots, new_delta}
   end
+  def remove(dots, value), do: remove(dots, &(&1==value))
 
   @doc """
   Removes all values from the set
@@ -136,7 +142,7 @@ defmodule Loom.Dots do
   end
 
   defp do_join(%Dots{dots: d1, ctx: ctx1, cloud: c1}=dots1, %Dots{dots: d2, ctx: ctx2, cloud: c2}=dots2) do
-    new_dots = do_join_dots(Enum.sort(d1), Enum.sort(d2), {dots1, dots2}, [])
+    new_dots = do_join_dots(Enum.sort(d1), Enum.sort(d2), {dots1, dots2}, [], :first)
     new_ctx = Dict.merge(ctx1, ctx2, fn (_, a, b) -> max(a, b) end)
     new_cloud = Enum.uniq(c1 ++ c2)
     compact(%Dots{dots: new_dots, ctx: new_ctx, cloud: new_cloud})
@@ -144,36 +150,39 @@ defmodule Loom.Dots do
 
   # This function requires the use of ORDERED lists.
   # If we run out of d2, also takes care of case when we run out of both same time.
-  defp do_join_dots(d1, [], {_, dots2}, acc) do
+  defp do_join_dots(d1, [], {_, dots2}, acc, _) do
     # Remove when the other knows about our dots in context/cloud, but isn't in
     # their dot values list (they observed a remove)
     new_d1 = Enum.reject(d1, fn ({dot, _}) -> dotin(dots2, dot) end)
     Enum.reverse(acc, new_d1) |> Enum.into %{}
   end
   # If we run out of d1
-  defp do_join_dots([], d2, {dots1, _}, acc) do
+  defp do_join_dots([], d2, {dots1, _}, acc, _) do
     # Add dot when it is only at the other side. This happens when they've got
     # values that we do not.
     new_d1 = Enum.reject(d2, fn ({dot, _}) -> dotin(dots1, dot) end)
     Enum.reverse(acc, new_d1) |> Enum.into %{}
   end
   # Always advance d1 when dot1 < dot2
-  defp do_join_dots([{dot1,value1}|d1], [{dot2,_}|_]=d2, {_, dots2}=dots, acc) when dot1 < dot2 do
+  defp do_join_dots([{dot1,value1}|d1], [{dot2,_}|_]=d2, {_, dots2}=dots, acc, merge) when dot1 < dot2 do
     # Remove if they know about dot1 and they don't have it in their dots
     # Otherwise keep our dot
     acc = if dotin(dots2, dot1), do: acc, else: [{dot1,value1}|acc]
-    do_join_dots(d1, d2, dots, acc)
+    do_join_dots(d1, d2, dots, acc, merge)
   end
   # Always advance d2 when dot2 < dot1
-  defp do_join_dots([{dot1,_}|_]=d1, [{dot2,value2}|d2], {dots1, _}=dots, acc) when dot2 < dot1 do
+  defp do_join_dots([{dot1,_}|_]=d1, [{dot2,value2}|d2], {dots1, _}=dots, acc, merge) when dot2 < dot1 do
     # If we know about dot2, then we already either have its value or don't
     # If we don't know about dot2, then we should grab it.
     acc = if dotin(dots1, dot2), do: acc, else: [{dot2,value2}|acc]
-    do_join_dots(d1, d2, dots, acc)
+    do_join_dots(d1, d2, dots, acc, merge)
   end
   # If we both got the same dot, just add it into the accumulator and advance both
-  defp do_join_dots([{dot,value1}|d1], [{dot,_}|d2], dots, acc) do
-    do_join_dots(d1, d2, dots, [{dot, value1}|acc])
+  defp do_join_dots([{dot,value1}|d1], [{dot,_}|d2], dots, acc, :first) do
+    do_join_dots(d1, d2, dots, [{dot, value1}|acc], :first)
+  end
+  defp do_join_dots([{dot,value1}|d1], [{dot,value2}|d2], dots, acc, merge) do
+    do_join_dots(d1, d2, dots, [{dot, merge.(value1,value2)}|acc], merge)
   end
 
 end

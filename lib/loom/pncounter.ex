@@ -13,7 +13,7 @@ defmodule Loom.PNCounter do
     %Counter{c|n: Map.update(n, actor, int, &(&1+int))}
   end
 
-  def read(%Counter{p: p, n: n}) do
+  def value(%Counter{p: p, n: n}) do
     (Dict.values(p) |> Enum.sum) - (Dict.values(n) |> Enum.sum)
   end
 
