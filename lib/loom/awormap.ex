@@ -16,8 +16,8 @@ defmodule Loom.AWORMap do
 
   def get(map, key, %{__struct__: module}), do: get(map, key, module)
   def get(%M{dots: d}, key, module) do
-    for {_, {^key, value}} <- Dots.dots(d), Map.get(value, :__struct__)==module do
-      value
+    for {_, {k, v}} <- Dots.dots(d), k == key,
+      Map.get(v, :__struct__)==module do v
     end |> case do
       [value] -> value
       [] -> struct(module)
