@@ -9,3 +9,6 @@ before_script:
   - "mix local.hex --force"
   - "mix deps.get"
 script: mix test
+after_script:
+  - "mix coveralls"
+  - "mix coveralls.post"
