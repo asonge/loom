@@ -10,5 +10,4 @@ before_script:
   - "mix deps.get"
 script: mix test
 after_script:
-  - "mix coveralls"
-  - "mix coveralls.post"
+  - "mix coveralls.post -b $TRAVIS_BRANCH"
