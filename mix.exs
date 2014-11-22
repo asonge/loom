@@ -5,7 +5,9 @@ defmodule Loom.Mixfile do
     [app: :loom,
      version: "0.0.1",
      elixir: "~> 1.0",
-     deps: deps]
+     deps: deps,
+     test_coverage: [tool: ExCoveralls]
+    ]
   end
 
   # Configuration for the OTP application
@@ -27,7 +29,8 @@ defmodule Loom.Mixfile do
   defp deps do
     [
       {:ex_doc, "~> 0.6", only: :dev},
-      {:earmark, ">= 0.0.0", only: :dev}
+      {:earmark, ">= 0.0.0", only: :dev},
+      {:excoveralls, "~> 0.3", only: :dev}
     ]
   end
 end

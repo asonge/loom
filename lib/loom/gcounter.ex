@@ -9,7 +9,7 @@ defmodule Loom.GCounter do
     %Counter{counter: Map.update(c, actor, int, &(&1+int))}
   end
 
-  def read(%Counter{counter: c}) do
+  def value(%Counter{counter: c}) do
     Dict.values(c) |> Enum.sum
   end
 
