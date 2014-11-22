@@ -31,6 +31,7 @@ defmodule Loom.Mixfile do
       {:ex_doc, "~> 0.6", only: :dev},
       {:earmark, ">= 0.0.0", only: :dev},
       {:excoveralls, "~> 0.3", only: :dev},
+      {:dialyze, "~> 0.1.3", only: :dev},
       {:inch_ex, only: :docs}
     ]
   end
