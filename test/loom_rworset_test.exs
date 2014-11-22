@@ -16,6 +16,12 @@ defmodule LoomRworsetTest do
     assert false == Set.member?(set, 1)
   end
 
+  test "Precondition fail" do
+    assert_raise Loom.PreconditionError, fn ->
+      Set.new |> Set.remove(:a, 1)
+    end
+  end
+
   test "Add/remove/add" do
     {set, _} = Set.new |> Set.add(:a, 1)
     assert true == Set.member?(set, 1)
