@@ -1,5 +1,7 @@
 defmodule Loom.PNCounter do
   @moduledoc """
+  Positive-negative counters
+  
   PNCounters are counters that are capable of incrementing and decrementing.
   They are useful for like counters, where a user may like and then unlike
   something in succession.
