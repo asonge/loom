@@ -114,3 +114,68 @@ defmodule Loom.PNCounter do
   end
 
 end
+
+defimpl Loom.CRDT, for: Loom.PNCounter do
+
+  alias Loom.PNCounter, as: Ctr
+
+  @doc """
+  Returns a description of the operations that this CRDT takes.
+
+  Updates return a new CRDT, reads can return any natural datatype. This counter
+  returns an integer.
+  """
+  def ops(_crdt) do
+    [ update: [
+      inc: [:actor],
+      inc: [:actor, :int],
+      dec: [:actor],
+      dec: [:actor, :int]
+      ],
+      read: [
+        value: []
+      ]
+    ]
+  end
+  @doc """
+  Applies a CRDT to a counter in an abstract way.
+
+  This is for ops-based support.
+
+  iex> alias Loom.CRDT
+  iex> alias Loom.PNCounter, as: Counter
+  iex> ctr = Counter.new |> CRDT.apply({:inc, :a}) |> CRDT.apply({:inc, :a, 3})
+  iex> CRDT.value(ctr)
+  4
+  iex> ctr = ctr |> CRDT.apply({:dec, :a}) |> CRDT.apply({:dec, :a, 5})
+  iex> CRDT.apply(ctr, :value)
+  -2
+
+  """
+  def apply(crdt, {:inc, actor}), do: Ctr.inc(crdt, actor)
+  def apply(crdt, {:inc, actor, int}), do: Ctr.inc(crdt, actor, int)
+  def apply(crdt, {:dec, actor}), do: Ctr.dec(crdt, actor)
+  def apply(crdt, {:dec, actor, int}), do: Ctr.dec(crdt, actor, int)
+  def apply(crdt, :value), do: Ctr.value(crdt)
+  @doc """
+  Joins 2 CRDT's of the same type.
+
+  2 different types cannot mix (yet). In the future, we may be able to join
+  different counters and merge their semantics, as long as the datatype grows
+  monotonically.
+
+    iex> alias Loom.CRDT
+    iex> alias Loom.PNCounter, as: Counter
+    ...> Counter.new |> CRDT.apply({:inc, :a, 2})
+    ...> |> CRDT.join(Counter.new |> CRDT.apply({:dec, :b, 5}))
+    ...> |> CRDT.value
+    -3
+
+  """
+  def join(%Ctr{}=a, %Ctr{}=b), do: Ctr.join(a, b)
+  @doc """
+  Returns the most natural value for a counter, an integer.
+  """
+  def value(crdt), do: Ctr.value(crdt)
+
+end
