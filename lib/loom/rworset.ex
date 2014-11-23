@@ -30,7 +30,7 @@ defmodule Loom.RWORSet do
                                  |> Dots.add(actor, {value, false})
       {%Set{dots: new_dots}, %Set{dots: new_delta_dots}}
     else
-      raise Loom.PreconditionError, {:unobserved, value}
+      raise Loom.PreconditionError, [unobserved: value]
     end
   end
 

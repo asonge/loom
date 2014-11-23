@@ -8,6 +8,7 @@ defmodule LoomAwormapTest do
     assert ctr == KVSet.get(map, 1, ctr)
     assert true == KVSet.has_key?(map, 1)
     assert false == KVSet.has_key?(map, 2)
+    assert %{ 1 => ctr } == map |> KVSet.value
   end
 
   test "Basic add and remove" do

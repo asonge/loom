@@ -10,7 +10,7 @@ defmodule Loom.AWORMap do
 
   def new, do: %M{}
 
-  def read(%M{dots: d}) do
+  def value(%M{dots: d}) do
     for {_, {k,v}} <- Dots.dots(d), into: %{}, do: {k,v}
   end
 
@@ -33,7 +33,7 @@ defmodule Loom.AWORMap do
   end
 
   def has_key?(%M{dots: d}, key) do
-    Dots.dots(d) |> Enum.any?(fn {_, {k,v}} -> k == key end)
+    Dots.dots(d) |> Enum.any?(fn {_, {k,_}} -> k == key end)
   end
 
   def add(%M{}=set, actor, key, value), do: add({set, M.new}, actor, key, value)

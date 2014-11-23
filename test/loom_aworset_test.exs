@@ -74,4 +74,11 @@ defmodule LoomAworsetTest do
     assert set3 == Set.join(d1, d3) |> Set.join(d2)
   end
 
+  test "Out of order delete delta application" do
+    {set1, _} = Set.new |> Set.add(:a, 1)
+    {set2, _} = Set.remove(set1, 1)
+    {_, d3} = Set.add(set2, :a, 3)
+    assert [1,3] = Set.join(set1, d3) |> Set.read |> Enum.sort
+  end
+
 end

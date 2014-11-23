@@ -28,7 +28,7 @@ defmodule Loom.AWORSet do
       {new_dots, new_delta_dots} = {d, delta_dots} |> Dots.remove(value)
       {%Set{dots: new_dots}, %Set{dots: new_delta_dots}}
     else
-      raise Loom.PreconditionError, {:unobserved, value}
+      raise Loom.PreconditionError, unobserved: value
     end
   end
 

@@ -56,6 +56,8 @@ defmodule Loom.Dots do
   """
   @spec join(t, t) :: t
   def join(dots1, dots2), do: do_join(dots1, dots2)
+  @spec join(t, t, (term, term -> term)) :: t
+  def join(dots1, dots2, merge), do: do_join(dots1, dots2, merge)
 
   @doc """
   Adds and associates a value with a new dot for an actor.
@@ -141,8 +143,8 @@ defmodule Loom.Dots do
     end
   end
 
-  defp do_join(%Dots{dots: d1, ctx: ctx1, cloud: c1}=dots1, %Dots{dots: d2, ctx: ctx2, cloud: c2}=dots2) do
-    new_dots = do_join_dots(Enum.sort(d1), Enum.sort(d2), {dots1, dots2}, [], :first)
+  defp do_join(%Dots{dots: d1, ctx: ctx1, cloud: c1}=dots1, %Dots{dots: d2, ctx: ctx2, cloud: c2}=dots2, res \\ :first) do
+    new_dots = do_join_dots(Enum.sort(d1), Enum.sort(d2), {dots1, dots2}, [], res)
     new_ctx = Dict.merge(ctx1, ctx2, fn (_, a, b) -> max(a, b) end)
     new_cloud = Enum.uniq(c1 ++ c2)
     compact(%Dots{dots: new_dots, ctx: new_ctx, cloud: new_cloud})
@@ -181,7 +183,7 @@ defmodule Loom.Dots do
   defp do_join_dots([{dot,value1}|d1], [{dot,_}|d2], dots, acc, :first) do
     do_join_dots(d1, d2, dots, [{dot, value1}|acc], :first)
   end
-  defp do_join_dots([{dot,value1}|d1], [{dot,value2}|d2], dots, acc, merge) do
+  defp do_join_dots([{dot,value1}|d1], [{dot,value2}|d2], dots, acc, merge) when is_function(merge) do
     do_join_dots(d1, d2, dots, [{dot, merge.(value1,value2)}|acc], merge)
   end
 
