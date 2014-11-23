@@ -6,12 +6,16 @@ defmodule Loom.AWORSet do
 
   def new, do: %Set{}
 
-  def read(%Set{dots: d}) do
+  def value(%Set{dots: d}) do
     (for {_, v} <- Dots.dots(d), do: v) |> Enum.uniq
   end
 
   def member?(%Set{dots: d}, value) do
     Dots.dots(d) |> Enum.any?(fn {_, v} -> v == value end)
+  end
+
+  def dots(%Set{dots: d}, value) do
+    Dots.dots(d) |> Enum.filter(fn {_, v} -> v == value end)
   end
 
   def add(%Set{}=set, actor, value), do: add({set, Set.new}, actor, value)

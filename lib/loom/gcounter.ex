@@ -54,3 +54,9 @@ defmodule Loom.GCounter do
   end
 
 end
+
+defimpl Loom.CRDT, for: Loom.GCounter do
+
+  def join(a, b), do: Loom.GCounter.join(a, b)
+
+end

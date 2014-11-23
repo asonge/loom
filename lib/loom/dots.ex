@@ -55,7 +55,7 @@ defmodule Loom.Dots do
   Joins any 2 dots together. Automatically compacts any contiguous dots.
   """
   @spec join(t, t) :: t
-  def join(dots1, dots2), do: do_join(dots1, dots2)
+  def join(dots1, dots2), do: do_join(dots1, dots2, :first)
   @spec join(t, t, (term, term -> term)) :: t
   def join(dots1, dots2, merge), do: do_join(dots1, dots2, merge)
 
@@ -103,17 +103,17 @@ defmodule Loom.Dots do
   end
   def remove(dots, value), do: remove(dots, &(&1==value))
 
-  @doc """
-  Removes all values from the set
-  """
-  @spec remove(t) :: {t, t}
-  @spec remove({t, t}) :: {t, t}
-  def remove(%Dots{dots: d}=dots), do: remove({%Dots{dots: d}, %Dots{}})
-  def remove({%Dots{dots: d}=dots, %Dots{}=delta}) do
-    new_dots = %Dots{dots|dots: %{}}
-    new_delta = join(delta, %Dots{cloud: Dict.keys(d)})
-    {new_dots, new_delta}
-  end
+  # @doc """
+  # Removes all values from the set
+  # """
+  # @spec remove(t) :: {t, t}
+  # @spec remove({t, t}) :: {t, t}
+  # def remove(%Dots{dots: d}=dots), do: remove({%Dots{dots: d}, %Dots{}})
+  # def remove({%Dots{dots: d}=dots, %Dots{}=delta}) do
+  #   new_dots = %Dots{dots|dots: %{}}
+  #   new_delta = join(delta, %Dots{cloud: Dict.keys(d)})
+  #   {new_dots, new_delta}
+  # end
 
   defp do_compact(%Dots{ctx: ctx, cloud: c}=dots) do
     {new_ctx, new_cloud} = compact_reduce(Enum.sort(c), ctx, [])
@@ -143,8 +143,8 @@ defmodule Loom.Dots do
     end
   end
 
-  defp do_join(%Dots{dots: d1, ctx: ctx1, cloud: c1}=dots1, %Dots{dots: d2, ctx: ctx2, cloud: c2}=dots2, res \\ :first) do
-    new_dots = do_join_dots(Enum.sort(d1), Enum.sort(d2), {dots1, dots2}, [], res)
+  defp do_join(%Dots{dots: d1, ctx: ctx1, cloud: c1}=dots1, %Dots{dots: d2, ctx: ctx2, cloud: c2}=dots2, merge) do
+    new_dots = do_join_dots(Enum.sort(d1), Enum.sort(d2), {dots1, dots2}, [], merge)
     new_ctx = Dict.merge(ctx1, ctx2, fn (_, a, b) -> max(a, b) end)
     new_cloud = Enum.uniq(c1 ++ c2)
     compact(%Dots{dots: new_dots, ctx: new_ctx, cloud: new_cloud})
@@ -184,7 +184,9 @@ defmodule Loom.Dots do
     do_join_dots(d1, d2, dots, [{dot, value1}|acc], :first)
   end
   defp do_join_dots([{dot,value1}|d1], [{dot,value2}|d2], dots, acc, merge) when is_function(merge) do
-    do_join_dots(d1, d2, dots, [{dot, merge.(value1,value2)}|acc], merge)
+    IO.inspect "Dirty merge!"
+    value = merge.(value1,value2)
+    do_join_dots(d1, d2, dots, [{dot, value}|acc], merge)
   end
 
 end
