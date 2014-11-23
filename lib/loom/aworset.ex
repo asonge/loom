@@ -13,11 +13,7 @@ defmodule Loom.AWORSet do
   def member?(%Set{dots: d}, value) do
     Dots.dots(d) |> Enum.any?(fn {_, v} -> v == value end)
   end
-
-  def dots(%Set{dots: d}, value) do
-    Dots.dots(d) |> Enum.filter(fn {_, v} -> v == value end)
-  end
-
+  
   def add(%Set{}=set, actor, value), do: add({set, Set.new}, actor, value)
   def add({%Set{dots: d}, %Set{dots: delta_dots}}, actor, value) do
     {new_dots, new_delta_dots} = {d, delta_dots}
