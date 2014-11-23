@@ -10,6 +10,6 @@ before_script:
   - "mix deps.get"
 script: mix test
 after_script:
-  - "mix coveralls.post -b $TRAVIS_BRANCH"
+  - "mix coveralls.travis"
   - MIX_ENV=docs mix deps.get
   - MIX_ENV=docs mix inch.report
