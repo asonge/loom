@@ -108,7 +108,10 @@ defimpl Loom.CRDT, for: Loom.GCounter do
 
     iex> alias Loom.CRDT
     iex> alias Loom.GCounter
-    iex> GCounter.new |> CRDT.apply({:inc, :a}) |> CRDT.apply({:inc, :a, 3}) |> CRDT.value
+    iex> ctr = GCounter.new |> CRDT.apply({:inc, :a}) |> CRDT.apply({:inc, :a, 3})
+    iex> CRDT.value(ctr)
+    4
+    iex> CRDT.apply(ctr, :value)
     4
 
   """
