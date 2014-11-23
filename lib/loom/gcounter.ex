@@ -1,4 +1,14 @@
 defmodule Loom.GCounter do
+  @moduledoc """
+  GCounters are grow-only counters. They can only ever increment. That makes
+  them useful for view and hit counters, which will never shrink.
+
+  They are not delta-CRDT's, as they are rather lightweight in general. A delta-
+  CRDT implementation would just return the latest value for an actor.
+
+  They do, however, implement the CRDT protocol, and can be coposed into larger
+  CRDT datastructures.
+  """
   alias Loom.GCounter, as: Counter
 
   @type actor :: term

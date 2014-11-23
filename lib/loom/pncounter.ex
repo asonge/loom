@@ -1,4 +1,16 @@
 defmodule Loom.PNCounter do
+  @moduledoc """
+  PNCounters are counters that are capable of incrementing and decrementing.
+  They are useful for like counters, where a user may like and then unlike
+  something in succession.
+
+  They are not delta-CRDT's, as they are rather lightweight in general. A delta-
+  CRDT implementation would just return the latest value for an actor.
+
+  They do, however, implement the CRDT protocol, and can be coposed into larger
+  CRDT datastructures.
+  """
+
   alias Loom.PNCounter, as: Counter
 
   @type actor :: term
@@ -17,8 +29,8 @@ defmodule Loom.PNCounter do
   @doc """
   Instantiate a new PNCounter. Starts at 0.
 
-    iex> Loom.PNCounter.new |> Loom.PNCounter.value
-    0
+      iex> Loom.PNCounter.new |> Loom.PNCounter.value
+      0
 
   """
   @spec new() :: t
@@ -27,10 +39,10 @@ defmodule Loom.PNCounter do
   @doc """
   Instantiate a new PNCounter with previous values.
 
-    iex> alias Loom.PNCounter, as: Counter
-    iex> values = [a: {10,0}, b: {5,5}, c: {37,5}]
-    iex> Counter.new(values: values) |> Counter.value
-    42
+      iex> alias Loom.PNCounter, as: Counter
+      iex> values = [a: {10,0}, b: {5,5}, c: {37,5}]
+      iex> Counter.new(values: values) |> Counter.value
+      42
 
   """
   @spec new([values: [{actor, {non_neg_integer,non_neg_integer}}]]) :: t
@@ -51,12 +63,12 @@ defmodule Loom.PNCounter do
   @doc """
   Increment a counter on behalf of the actor.
 
-    iex> alias Loom.PNCounter, as: Counter
-    iex> Counter.new
-    ...> |> Counter.inc(:a, 1)
-    ...> |> Counter.inc(:a, 29)
-    ...> |> Counter.value
-    30
+      iex> alias Loom.PNCounter, as: Counter
+      iex> Counter.new
+      ...> |> Counter.inc(:a, 1)
+      ...> |> Counter.inc(:a, 29)
+      ...> |> Counter.value
+      30
 
   """
   @spec inc(t, actor, pos_integer) :: t
@@ -67,17 +79,17 @@ defmodule Loom.PNCounter do
   @doc """
   Decrement a counter on behalf of the actor.
 
-    iex> alias Loom.PNCounter, as: Counter
-    iex> Counter.new
-    ...> |> Counter.dec(:a, 1)
-    ...> |> Counter.dec(:a, 29)
-    ...> |> Counter.value
-    -30
-    iex> Counter.new
-    ...> |> Counter.inc(:a, 1)
-    ...> |> Counter.dec(:a, 1)
-    ...> |> Counter.value
-    0
+      iex> alias Loom.PNCounter, as: Counter
+      iex> Counter.new
+      ...> |> Counter.dec(:a, 1)
+      ...> |> Counter.dec(:a, 29)
+      ...> |> Counter.value
+      -30
+      iex> Counter.new
+      ...> |> Counter.inc(:a, 1)
+      ...> |> Counter.dec(:a, 1)
+      ...> |> Counter.value
+      0
 
   """
   @spec dec(t, actor, pos_integer) :: t
@@ -98,11 +110,11 @@ defmodule Loom.PNCounter do
   @doc """
   Joins 2 counters together.
 
-    iex> alias Loom.PNCounter, as: Counter
-    iex> ctr1 = Counter.new |> Counter.inc(:a) |> Counter.dec(:a, 10)
-    iex> ctr2 = Counter.new |> Counter.dec(:b) |> Counter.inc(:b, 5)
-    iex> Counter.join(ctr1,ctr2) |> Counter.value
-    -5
+      iex> alias Loom.PNCounter, as: Counter
+      iex> ctr1 = Counter.new |> Counter.inc(:a) |> Counter.dec(:a, 10)
+      iex> ctr2 = Counter.new |> Counter.dec(:b) |> Counter.inc(:b, 5)
+      iex> Counter.join(ctr1,ctr2) |> Counter.value
+      -5
 
   """
   @spec join(t, t) :: t
@@ -142,14 +154,14 @@ defimpl Loom.CRDT, for: Loom.PNCounter do
 
   This is for ops-based support.
 
-  iex> alias Loom.CRDT
-  iex> alias Loom.PNCounter, as: Counter
-  iex> ctr = Counter.new |> CRDT.apply({:inc, :a}) |> CRDT.apply({:inc, :a, 3})
-  iex> CRDT.value(ctr)
-  4
-  iex> ctr = ctr |> CRDT.apply({:dec, :a}) |> CRDT.apply({:dec, :a, 5})
-  iex> CRDT.apply(ctr, :value)
-  -2
+      iex> alias Loom.CRDT
+      iex> alias Loom.PNCounter, as: Counter
+      iex> ctr = Counter.new |> CRDT.apply({:inc, :a}) |> CRDT.apply({:inc, :a, 3})
+      iex> CRDT.value(ctr)
+      4
+      iex> ctr = ctr |> CRDT.apply({:dec, :a}) |> CRDT.apply({:dec, :a, 5})
+      iex> CRDT.apply(ctr, :value)
+      -2
 
   """
   def apply(crdt, {:inc, actor}), do: Ctr.inc(crdt, actor)
@@ -164,12 +176,12 @@ defimpl Loom.CRDT, for: Loom.PNCounter do
   different counters and merge their semantics, as long as the datatype grows
   monotonically.
 
-    iex> alias Loom.CRDT
-    iex> alias Loom.PNCounter, as: Counter
-    ...> Counter.new |> CRDT.apply({:inc, :a, 2})
-    ...> |> CRDT.join(Counter.new |> CRDT.apply({:dec, :b, 5}))
-    ...> |> CRDT.value
-    -3
+      iex> alias Loom.CRDT
+      iex> alias Loom.PNCounter, as: Counter
+      ...> Counter.new |> CRDT.apply({:inc, :a, 2})
+      ...> |> CRDT.join(Counter.new |> CRDT.apply({:dec, :b, 5}))
+      ...> |> CRDT.value
+      -3
 
   """
   def join(%Ctr{}=a, %Ctr{}=b), do: Ctr.join(a, b)
