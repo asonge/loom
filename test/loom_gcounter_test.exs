@@ -1,16 +1,11 @@
 defmodule LoomGcounterTest do
   use ExUnit.Case
-  use Loom
 
-  test "Identity and basic increment" do
-    assert 0 = GCounter.new |> GCounter.value
-    assert 30 = GCounter.new |> GCounter.inc(:a, 1) |> GCounter.inc(:a, 29) |> GCounter.value()
-  end
+  doctest Loom.GCounter
+  doctest Elixir.Loom.CRDT.Loom.GCounter # The Protocol implementation
 
-  test "Increment and join" do
-    ctr1 = GCounter.new |> GCounter.inc(:a) |> GCounter.inc(:a, 10)
-    ctr2 = GCounter.new |> GCounter.inc(:b) |> GCounter.inc(:b, 5)
-    assert 17 = GCounter.join(ctr1,ctr2) |> GCounter.value
+  test "Stupid test for CRDT ops" do
+    assert [_,_] = Keyword.take(Loom.CRDT.ops(Loom.GCounter.new), [:update, :read])
   end
 
 end
