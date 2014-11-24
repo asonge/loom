@@ -55,16 +55,12 @@ defmodule Loom.Dots do
   Joins any 2 dots together. Automatically compacts any contiguous dots.
   """
   @spec join(t, t) :: t
-  def join(dots1, dots2), do: do_join(dots1, dots2, :first)
-  @spec join(t, t, (term, term -> term)) :: t
-  def join(dots1, dots2, merge), do: do_join(dots1, dots2, merge)
+  def join(dots1, dots2), do: do_join(dots1, dots2)
 
   @doc """
   Adds and associates a value with a new dot for an actor.
   """
-  @spec add(t, actor, value) :: {t, t}
   @spec add({t, t}, actor, value) :: {t, t}
-  def add(%Dots{}=dots, actor, value), do: add({dots, Dots.new}, actor, value)
   def add({%Dots{dots: d, ctx: ctx}=dots, delta_dots}, actor, value) do
     clock = Dict.get(ctx, actor, 0) + 1 # What's the value of our clock?
     dot = {actor, clock}
@@ -82,9 +78,7 @@ defmodule Loom.Dots do
   @doc """
   Removes a value from the set
   """
-  @spec remove(t, value) :: {t, t}
   @spec remove({t, t}, value) :: {t, t}
-  def remove(%Dots{}=dots, value), do: remove({dots, Dots.new}, value)
   def remove({%Dots{dots: d}=dots, delta_dots}, pred) when is_function(pred) do
     {new_d, delta_cloud} = Enum.reduce(d, {%{}, []}, fn ({dot, v}, {d, cloud}) ->
       if pred.(v) do
@@ -143,8 +137,8 @@ defmodule Loom.Dots do
     end
   end
 
-  defp do_join(%Dots{dots: d1, ctx: ctx1, cloud: c1}=dots1, %Dots{dots: d2, ctx: ctx2, cloud: c2}=dots2, merge) do
-    new_dots = do_join_dots(Enum.sort(d1), Enum.sort(d2), {dots1, dots2}, [], merge)
+  defp do_join(%Dots{dots: d1, ctx: ctx1, cloud: c1}=dots1, %Dots{dots: d2, ctx: ctx2, cloud: c2}=dots2) do
+    new_dots = do_join_dots(Enum.sort(d1), Enum.sort(d2), {dots1, dots2}, [])
     new_ctx = Dict.merge(ctx1, ctx2, fn (_, a, b) -> max(a, b) end)
     new_cloud = Enum.uniq(c1 ++ c2)
     compact(%Dots{dots: new_dots, ctx: new_ctx, cloud: new_cloud})
@@ -152,41 +146,35 @@ defmodule Loom.Dots do
 
   # This function requires the use of ORDERED lists.
   # If we run out of d2, also takes care of case when we run out of both same time.
-  defp do_join_dots(d1, [], {_, dots2}, acc, _) do
+  defp do_join_dots(d1, [], {_, dots2}, acc) do
     # Remove when the other knows about our dots in context/cloud, but isn't in
     # their dot values list (they observed a remove)
     new_d1 = Enum.reject(d1, fn ({dot, _}) -> dotin(dots2, dot) end)
     Enum.reverse(acc, new_d1) |> Enum.into %{}
   end
   # If we run out of d1
-  defp do_join_dots([], d2, {dots1, _}, acc, _) do
+  defp do_join_dots([], d2, {dots1, _}, acc) do
     # Add dot when it is only at the other side. This happens when they've got
     # values that we do not.
     new_d1 = Enum.reject(d2, fn ({dot, _}) -> dotin(dots1, dot) end)
     Enum.reverse(acc, new_d1) |> Enum.into %{}
   end
   # Always advance d1 when dot1 < dot2
-  defp do_join_dots([{dot1,value1}|d1], [{dot2,_}|_]=d2, {_, dots2}=dots, acc, merge) when dot1 < dot2 do
+  defp do_join_dots([{dot1,value1}|d1], [{dot2,_}|_]=d2, {_, dots2}=dots, acc) when dot1 < dot2 do
     # Remove if they know about dot1 and they don't have it in their dots
     # Otherwise keep our dot
     acc = if dotin(dots2, dot1), do: acc, else: [{dot1,value1}|acc]
-    do_join_dots(d1, d2, dots, acc, merge)
+    do_join_dots(d1, d2, dots, acc)
   end
   # Always advance d2 when dot2 < dot1
-  defp do_join_dots([{dot1,_}|_]=d1, [{dot2,value2}|d2], {dots1, _}=dots, acc, merge) when dot2 < dot1 do
+  defp do_join_dots([{dot1,_}|_]=d1, [{dot2,value2}|d2], {dots1, _}=dots, acc) when dot2 < dot1 do
     # If we know about dot2, then we already either have its value or don't
     # If we don't know about dot2, then we should grab it.
     acc = if dotin(dots1, dot2), do: acc, else: [{dot2,value2}|acc]
-    do_join_dots(d1, d2, dots, acc, merge)
+    do_join_dots(d1, d2, dots, acc)
   end
   # If we both got the same dot, just add it into the accumulator and advance both
-  defp do_join_dots([{dot,value1}|d1], [{dot,_}|d2], dots, acc, :first) do
-    do_join_dots(d1, d2, dots, [{dot, value1}|acc], :first)
+  defp do_join_dots([{dot,value1}|d1], [{dot,_}|d2], dots, acc) do
+    do_join_dots(d1, d2, dots, [{dot, value1}|acc])
   end
-  defp do_join_dots([{dot,value1}|d1], [{dot,value2}|d2], dots, acc, merge) when is_function(merge) do
-    IO.inspect "Dirty merge!"
-    value = merge.(value1,value2)
-    do_join_dots(d1, d2, dots, [{dot, value}|acc], merge)
-  end
-
 end
