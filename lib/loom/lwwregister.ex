@@ -84,6 +84,7 @@ defmodule Loom.LWWRegister do
 
       iex> alias Loom.LWWRegister, as: Reg
       iex> a = Reg.new("test") |> Reg.set("test2")
+      iex> :timer.sleep(1)
       iex> Reg.new("take over") |> Reg.join(a) |> Reg.value
       "take over"
 

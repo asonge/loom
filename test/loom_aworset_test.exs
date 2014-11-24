@@ -7,6 +7,8 @@ defmodule LoomAworsetTest do
     assert [1] == Set.value(set)
     assert true == Set.member?(set, 1)
     assert false == Set.member?(set, 2)
+    {empty, _} = Set.empty(set)
+    assert [] == empty |> Set.value
   end
 
   test "Precondition fail" do

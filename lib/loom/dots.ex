@@ -101,17 +101,15 @@ defmodule Loom.Dots do
   end
   def remove(dots, value), do: remove(dots, &(&1==value))
 
-  # @doc """
-  # Removes all values from the set
-  # """
-  # @spec remove(t) :: {t, t}
-  # @spec remove({t, t}) :: {t, t}
-  # def remove(%Dots{dots: d}=dots), do: remove({%Dots{dots: d}, %Dots{}})
-  # def remove({%Dots{dots: d}=dots, %Dots{}=delta}) do
-  #   new_dots = %Dots{dots|dots: %{}}
-  #   new_delta = join(delta, %Dots{cloud: Dict.keys(d)})
-  #   {new_dots, new_delta}
-  # end
+  @doc """
+  Removes all values from the set
+  """
+  @spec remove({t, t}) :: {t, t}
+  def remove({%Dots{dots: d}=dots, %Dots{}=delta}) do
+    new_dots = %Dots{dots|dots: %{}}
+    new_delta = join(delta, %Dots{cloud: Dict.keys(d)})
+    {new_dots, new_delta}
+  end
 
   defp do_compact(%Dots{ctx: ctx, cloud: c}=dots) do
     {new_ctx, new_cloud} = compact_reduce(Enum.sort(c), ctx, [])

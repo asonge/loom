@@ -32,6 +32,12 @@ defmodule Loom.AWORSet do
     end
   end
 
+  def empty(%Set{}=set), do: empty({set, Set.new})
+  def empty({%Set{dots: d}=set, %Set{dots: delta_dots}}) do
+    {new_dots, new_delta_dots} = Dots.remove({d, delta_dots})
+    {%Set{dots: new_dots}, %Set{dots: new_delta_dots}}
+  end
+
   def join(%Set{dots: d1}, %Set{dots: d2}) do
     %Set{dots: Dots.join(d1, d2)}
   end
