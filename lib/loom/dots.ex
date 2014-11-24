@@ -45,14 +45,18 @@ defmodule Loom.Dots do
   # def cloud(%Dots{cloud: c}), do: c
 
   @doc """
-  Compact the dots. This merges any newly-contiguously-joined deltas.
-  This is usually called automatically as needed.
+  Compact the dots.
+
+  This merges any newly-contiguously-joined deltas. This is usually called
+  automatically as needed.
   """
   @spec compact(t) :: t
   def compact(dots), do: do_compact(dots)
 
   @doc """
-  Joins any 2 dots together. Automatically compacts any contiguous dots.
+  Joins any 2 dots together.
+
+  Automatically compacts any contiguous dots.
   """
   @spec join(t, t) :: t
   def join(dots1, dots2), do: do_join(dots1, dots2)
