@@ -3,6 +3,8 @@ defmodule Loom.Mixfile do
 
   def project do
     [app: :loom,
+     description: "A modern CRDT library that uses protocols to create composable CRDTs.",
+     package: package,
      version: "0.0.9",
      elixir: "~> 1.0",
      deps: deps,
@@ -36,4 +38,10 @@ defmodule Loom.Mixfile do
       {:inch_ex, only: :docs}
     ]
   end
+
+  defp package do
+    %{licenses: ["Apache 2"],
+    links: %{"Github" => "https://github.com/asonge/loom"}}
+  end
+
 end
