@@ -6,7 +6,8 @@ defmodule Loom.Mixfile do
      version: "0.0.1",
      elixir: "~> 1.0",
      deps: deps,
-     test_coverage: [tool: ExCoveralls]
+     test_coverage: [tool: ExCoveralls],
+     docs: [readme: true, main: "README"]
     ]
   end
 
