@@ -85,3 +85,64 @@ defmodule Loom.MVRegister do
   end
 
 end
+
+defimpl Loom.CRDT, for: Loom.MVRegister do
+
+  alias Loom.MVRegister, as: Reg
+
+  @doc """
+  Returns a description of the operations that this CRDT takes.
+
+  Updates return a new CRDT, reads can return any natural datatype. This register
+  returns a value.
+  """
+  def ops(_crdt) do
+    [ update: [
+        set: [:actor, :value],
+      ],
+      read: [
+        value: []
+      ]
+    ]
+  end
+
+  @doc """
+  Applies a CRDT to a counter in an abstract way.
+
+  This is for ops-based support.
+
+  iex> alias Loom.CRDT
+  iex> alias Loom.MVRegister, as: Reg
+  iex> reg = Reg.new |> CRDT.apply({:set, :a, "test"}) |> CRDT.apply({:set, :a, "testing"})
+  iex> CRDT.apply(reg, :value)
+  "testing"
+
+  """
+  def apply(crdt, {:set, actor, value}) do
+    {reg, _} = Reg.set(crdt, actor, value)
+    reg
+  end
+  def apply(crdt, :value), do: Reg.value(crdt)
+
+  @doc """
+  Joins 2 CRDT's of the same type.
+
+  2 different types cannot mix (yet). In the future, we may be able to join
+  different counters and merge their semantics, as long as the datatype grows
+  monotonically.
+
+  iex> alias Loom.CRDT
+  iex> a = Loom.MVRegister.new |> CRDT.apply({:set, :a, "test"})
+  iex> b = Loom.MVRegister.new |> CRDT.apply({:set, :b, "test2"})
+  iex> CRDT.join(a,b) |> CRDT.value |> Enum.sort
+  ["test","test2"]
+
+  """
+  def join(a, %Reg{}=b), do: Reg.join(a, b)
+
+  @doc """
+  Returns the most natural value for a counter, an integer.
+  """
+  def value(crdt), do: Reg.value(crdt)
+
+end
