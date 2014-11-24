@@ -84,8 +84,7 @@ defmodule Loom.LWWRegister do
 
       iex> alias Loom.LWWRegister, as: Reg
       iex> a = Reg.new("test") |> Reg.set("test2")
-      iex> b = Reg.new("take over")
-      ...> Reg.join(a,b) |> Reg.value
+      iex> Reg.new("take over") |> Reg.join(a) |> Reg.value
       "take over"
 
   In the event that 2 have the same clock, it simply takes the biggest according
@@ -150,6 +149,10 @@ defimpl Loom.CRDT, for: Loom.LWWRegister do
       iex> ctr = Reg.new |> CRDT.apply({:set, "test"}) |> CRDT.apply({:set, "testing"})
       iex> CRDT.value(ctr)
       "testing"
+
+      iex> alias Loom.CRDT
+      iex> alias Loom.LWWRegister, as: Reg
+      iex> ctr = Reg.new |> CRDT.apply({:set, "test", 10}) |> CRDT.apply({:set, "testing", 11})
       iex> CRDT.apply(ctr, :value)
       "testing"
 
@@ -163,8 +166,21 @@ defimpl Loom.CRDT, for: Loom.LWWRegister do
   2 different types cannot mix (yet). In the future, we may be able to join
   different counters and merge their semantics, as long as the datatype grows
   monotonically.
+
+      iex> alias Loom.CRDT
+      iex> a = Loom.LWWRegister.new |> CRDT.apply({:set, "test", 10})
+      iex> b = Loom.LWWRegister.new |> CRDT.apply({:set, "test2", 11})
+      iex> CRDT.join(a,b) |> CRDT.value
+      "test2"
+
+      iex> alias Loom.CRDT
+      iex> a = Loom.LWWRegister.new("test")
+      iex> CRDT.join(a,a) |> CRDT.value()
+      "test"
+
   """
-  def join(%Reg{}=a, %Reg{}=b), do: Reg.join(a, b)
+  def join(a, %Reg{}=b), do: Reg.join(a, b)
+
   @doc """
   Returns the most natural value for a counter, an integer.
   """
