@@ -3,7 +3,7 @@ defmodule Loom.Mixfile do
 
   def project do
     [app: :loom,
-     version: "0.0.1",
+     version: "0.0.9",
      elixir: "~> 1.0",
      deps: deps,
      test_coverage: [tool: ExCoveralls],
