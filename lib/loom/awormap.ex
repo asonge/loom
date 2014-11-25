@@ -2,7 +2,8 @@ defmodule Loom.AWORMap do
   @moduledoc """
   An add-wins observed-remove map or CRDTs, based on optimized sets.
 
-  Compose any CRDT that implements the `Loom.CRDT` protocol.
+  Compose any CRDT that implements the `Loom.CRDT` protocol. This is awkward by
+  itself because of the use of copious key-module pairs.
   """
 
   alias Loom.AWORMap, as: M
@@ -31,6 +32,9 @@ defmodule Loom.AWORMap do
   @spec new() :: t
   def new, do: %M{}
 
+  @doc """
+  Insert a value, and merge it with any that exist already
+  """
   @spec put(t | {t,t}, actor, key, crdt) :: {t,t}
   def put(%M{}=map, actor, key, value), do: put({map, M.new}, actor, key, value)
   def put({%M{keys: set, values: vals}=m, %M{keys: delta_set, values: delta_vals}=d}, actor, key, value) do
@@ -42,6 +46,9 @@ defmodule Loom.AWORMap do
     {%M{m|keys: new_set, values: new_values}, %M{d|keys: new_delta_set, values: new_delta_values}}
   end
 
+  @doc """
+  Delete an entry for a key-module pair
+  """
   @spec delete(t | {t,t}, key, type) :: {t,t}
   def delete(set, key, %{__struct__: module}), do: delete(set, key, module)
   def delete(%M{}=set, key, module), do: delete({set, M.new}, key, module)
@@ -53,6 +60,9 @@ defmodule Loom.AWORMap do
     {%M{m|keys: new_set, values: new_values}, %M{d|keys: new_delta_set, values: new_delta_values}}
   end
 
+  @doc """
+  Join a map
+  """
   @spec join(t, t) :: t
   def join(%M{keys: set1, values: values1}, %M{keys: set2, values: values2}) do
     new_set = Set.join(set1, set2)
@@ -67,6 +77,10 @@ defmodule Loom.AWORMap do
     %M{keys: new_set, values: new_values}
   end
 
+  @doc """
+  Get a value for a key-module pair
+  """
+  @spec get(t | {t,t}, key, type) :: term
   def get(map, key, %{__struct__: module}), do: get(map, key, module)
   def get(%M{values: values}=map, key, module) do
     for {k,mod} <- keys(map), k == key, mod == module do
@@ -77,13 +91,26 @@ defmodule Loom.AWORMap do
     end |> Loom.CRDT.value
   end
 
+  @doc """
+  Returns the set of all key-module pairs
+  """
+  @spec keys(t) :: [{key,type}]
   def keys(%M{keys: set}), do: Set.value(set)
 
+  @doc """
+  Checks if a key-module pair exists in the map already for the key.
+  """
+  @spec has_key?(t | {t,t}, key, module) :: boolean
+  def has_key?({set, %M{}}, key, module), do: has_key?(set, key, module)
   def has_key?(%M{keys: set}, key, module), do: Set.member?(set, {key, module})
 
+  @doc """
+  Returns a map of values for key-module pairs
+  """
+  @spec value(t) :: [{key,term}] | nil
   def value(%M{values: values}) when map_size(values)==0, do: nil
   def value(%M{values: values}) do
-    for {{k,_}, crdt} <- values, into: %{}, do: {k, Loom.CRDT.value(crdt)}
+    for {k, crdt} <- values, into: %{}, do: {k, Loom.CRDT.value(crdt)}
   end
 
 end
@@ -127,7 +154,7 @@ defimpl Loom.CRDT, for: Loom.AWORMap do
       ...> |> CRDT.apply({:put, :a, "omg", wtf})
       ...> |> CRDT.apply({:delete, "omg", LWWRegister})
       ...> |> CRDT.apply(:value)
-      %{"foo" => "bar"}
+      %{{"foo", Loom.LWWRegister} => "bar"}
 
       iex> alias Loom.CRDT
       iex> Loom.AWORMap.new |> CRDT.apply({:has_key, :none, Loom.LWWRegister})
@@ -167,7 +194,7 @@ defimpl Loom.CRDT, for: Loom.AWORMap do
       iex> a = Loom.AWORMap.new |> CRDT.apply({:put, :a, :test, test_a})
       iex> b = Loom.AWORMap.new |> CRDT.apply({:put, :b, :test, test_b})
       iex> CRDT.join(a,b) |> CRDT.apply(:value)
-      %{test: [1,2]}
+      %{{:test, Loom.MVRegister} => [1,2]}
 
   """
   def join(a, b), do: KVSet.join(a, b)

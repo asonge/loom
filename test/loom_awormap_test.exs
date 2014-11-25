@@ -7,12 +7,12 @@ defmodule LoomAwormapTest do
 
   test "Basic put" do
     ctr = GCounter.new
-    {map, _} = KVSet.new |> KVSet.put(:a, 1, ctr)
+    {map, delta} = KVSet.new |> KVSet.put(:a, 1, ctr)
     assert 0 == KVSet.get(map, 1, GCounter)
     assert 0 == KVSet.get(map, 3, GCounter)
-    assert true == KVSet.has_key?(map, 1, GCounter)
+    assert true == KVSet.has_key?({map, delta}, 1, GCounter)
     assert false == KVSet.has_key?(map, 2, GCounter)
-    assert %{ 1 => 0 } == map |> KVSet.value
+    assert %{ {1, Loom.GCounter} => 0 } == map |> KVSet.value
   end
 
   test "Basic put and delete" do
@@ -43,7 +43,7 @@ defmodule LoomAwormapTest do
     ctrC = GCounter.join(ctrA, ctrB)
     {setA, deltaA} = KVSet.new |> KVSet.put(:a, "counter", ctrA) |> KVSet.put(:a, "lft", ctrA)
     {setB, deltaB} = KVSet.new |> KVSet.put(:b, "counter", ctrB) |> KVSet.put(:b, "rgt", ctrB)
-    expected = %{"counter" => Loom.CRDT.value(ctrC), "lft" => 10, "rgt" => 10}
+    expected = %{{"counter", GCounter} => Loom.CRDT.value(ctrC), {"lft",GCounter} => 10, {"rgt",GCounter} => 10}
     assert expected == KVSet.join(setA, setB) |> KVSet.value
     assert expected == KVSet.join(setA, deltaB) |> KVSet.value
     assert expected == KVSet.join(deltaA, setB) |> KVSet.value
