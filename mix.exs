@@ -5,7 +5,7 @@ defmodule Loom.Mixfile do
     [app: :loom,
      description: "A modern CRDT library that uses protocols to create composable CRDTs.",
      package: package,
-     version: "0.0.10-dev",
+     version: "0.0.10",
      elixir: "~> 1.0",
      deps: deps,
      test_coverage: [tool: ExCoveralls],
