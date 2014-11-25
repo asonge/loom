@@ -1,9 +1,11 @@
 Loom
 ========
-
 [![Build Status](https://travis-ci.org/asonge/loom.svg?branch=master)](https://travis-ci.org/asonge/loom)
 [![Coverage Status](https://coveralls.io/repos/asonge/loom/badge.png?branch=master)](https://coveralls.io/r/asonge/loom?branch=master)
 [![Docs Status](http://inch-ci.org/github/asonge/loom.svg?branch=master)](http://inch-ci.org/github/asonge/loom)
+[![Hex docs](http://img.shields.io/badge/hex.pm-docs-green.svg)](https://hexdocs.pm/loom)
+[![Current Release](https://img.shields.io/hexpm/v/loom.svg)](https://hex.pm/packages/loom)
+![License Apache2](https://img.shields.io/hexpm/l/loom.svg)
 
 Loom is a set of CRDT's that are designed to compose and maintain their CRDT
 properties. They are also designed to be extensible with whatever domain logic
