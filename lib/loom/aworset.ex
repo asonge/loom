@@ -39,8 +39,8 @@ defmodule Loom.AWORSet do
       iex> Set.new |> Set.add(:a, 1) |> Set.add(:b, 2) |> Set.value |> Enum.sort
       [1,2]
   """
-  @spec add(t, actor, value) :: t
-  @spec add({t,t}, actor, value) :: t
+  @spec add(t, actor, value) :: {t,t}
+  @spec add({t,t}, actor, value) :: {t,t}
   def add(%Set{}=set, actor, value), do: add({set, Set.new}, actor, value)
   def add({%Set{dots: d}, %Set{dots: delta_dots}}, actor, value) do
     {new_dots, new_delta_dots} = {d, delta_dots}
@@ -60,8 +60,8 @@ defmodule Loom.AWORSet do
       ...> |> Set.value
       [2]
   """
-  @spec remove(t, value) :: t
-  @spec remove({t,t}, value) :: t
+  @spec remove(t, value) :: {t,t}
+  @spec remove({t,t}, value) :: {t,t}
   def remove(%Set{}=set, value), do: remove({set, Set.new}, value)
   def remove({%Set{dots: d}=set, %Set{dots: delta_dots}}, value) do
     if member?(set, value) do
@@ -82,8 +82,8 @@ defmodule Loom.AWORSet do
       ...> |> Set.value
       []
   """
-  @spec empty(t) :: t
-  @spec empty({t,t}) :: t
+  @spec empty(t) :: {t,t}
+  @spec empty({t,t}) :: {t,t}
   def empty(%Set{}=set), do: empty({set, Set.new})
   def empty({%Set{dots: d}=set, %Set{dots: delta_dots}}) do
     {new_dots, new_delta_dots} = Dots.remove({d, delta_dots})
@@ -126,6 +126,8 @@ defmodule Loom.AWORSet do
 
   See other examples for details.
   """
+  @spec value({t,t}) :: [value]
+  @spec value(t) :: [value]
   def value({set, %Set{}}), do: value(set)
   def value(%Set{dots: d}) do
     (for {_, v} <- Dots.dots(d), do: v) |> Enum.uniq
@@ -190,7 +192,7 @@ defimpl Loom.CRDT, for: Loom.AWORSet do
       ["test","test2"]
 
   """
-  def join(a, %Set{}=b), do: Set.join(a, b)
+  def join(a, b), do: Set.join(a, b)
 
   @doc """
   Returns the most natural primitive value for a set, a list.
