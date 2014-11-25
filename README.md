@@ -47,9 +47,9 @@ For now, I can simply point you to the GCounter code in here.
 
 ## Where can I learn more? ##
 1. Strong Eventual Consistency and Conflict-free Replicated Data Types
- - A good introduction to the concept of CRDTs: http://research.microsoft.com/apps/video/default.aspx?id=153540&r=1
-1. A comprehensive study of Convergent and Commutative Replicated Data Types
- - A survey with references for several popular CRDTs: http://hal.inria.fr/docs/00/55/55/88/PDF/techreport.pdf
-2. Efficient State-based CRDTs by Delta-Mutation
- - Talk: https://www.youtube.com/watch?v=y_ewFP-lgyM
- - Paper: http://arxiv.org/pdf/1410.2803v1.pdf
+  - A good introduction to the concept of CRDTs: http://research.microsoft.com/apps/video/default.aspx?id=153540&r=1
+2. A comprehensive study of Convergent and Commutative Replicated Data Types
+  - A survey with references for several popular CRDTs: http://hal.inria.fr/docs/00/55/55/88/PDF/techreport.pdf
+3. Efficient State-based CRDTs by Delta-Mutation
+  - Talk: https://www.youtube.com/watch?v=y_ewFP-lgyM
+  - Paper: http://arxiv.org/pdf/1410.2803v1.pdf
