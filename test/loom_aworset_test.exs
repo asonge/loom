@@ -2,6 +2,9 @@ defmodule LoomAworsetTest do
   use ExUnit.Case
   use Loom
 
+  doctest Loom.AWORSet
+  doctest Loom.CRDT.Loom.AWORSet # The Protocol implementation
+
   test "Basic add to set" do
     {set, _} = Set.new |> Set.add(:a, 1)
     assert [1] == Set.value(set)

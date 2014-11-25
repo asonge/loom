@@ -39,8 +39,8 @@ defmodule Loom.RWORSet do
       ["test1", "test2"]
 
   """
-  @spec add(t, actor, value) :: t
-  @spec add({t,t}, actor, value) :: t
+  @spec add(t, actor, value) :: {t,t}
+  @spec add({t,t}, actor, value) :: {t,t}
   def add(%Set{}=set, actor, value), do: add({set, Set.new}, actor, value)
   def add({%Set{dots: d}, %Set{dots: delta_dots}}, actor, value) do
     {new_dots, new_delta_dots} = {d, delta_dots}
@@ -57,8 +57,8 @@ defmodule Loom.RWORSet do
       false
 
   """
-  @spec remove(t, actor, value) :: t
-  @spec remove({t,t}, actor, value) :: t
+  @spec remove(t, actor, value) :: {t,t}
+  @spec remove({t,t}, actor, value) :: {t,t}
   def remove(%Set{}=set, actor, value), do: remove({set, Set.new}, actor, value)
   def remove({%Set{dots: d}=set, %Set{dots: delta_dots}}, actor, value) do
     if member?(set, value) do
@@ -79,8 +79,8 @@ defmodule Loom.RWORSet do
       true
 
   """
-  @spec member?({t, t}, value) :: t
-  @spec member?(t, value) :: t
+  @spec member?({t, t}, value) :: boolean
+  @spec member?(t, value) :: boolean
   def member?({set, _}, value), do: member?(set, value)
   def member?(%Set{dots: d}, value) do
     Dots.dots(d) |> Enum.any?(fn {_, term_pair} -> term_pair == {value,true} end)
@@ -94,9 +94,9 @@ defmodule Loom.RWORSet do
       ["test1"]
 
   """
-  @spec value({t, t}) :: t
-  @spec value(t) :: t
-  def value({set, _}), do: value(set)
+  @spec value({t, t}) :: [value]
+  @spec value(t) :: [value]
+  def value({set, %Set{}}), do: value(set)
   def value(%Set{dots: d}) do
     (for {_, {v, true}} <- Dots.dots(d), do: v) |> Enum.uniq
   end
@@ -176,7 +176,8 @@ defimpl Loom.CRDT, for: Loom.RWORSet do
       ["test","test2"]
 
   """
-  def join(a, %Set{}=b), do: Set.join(a, b)
+  @spec join(Set.t, Set.t) :: Set.t
+  def join(a, b), do: Set.join(a, b)
 
   @doc """
   Returns the most natural primitive value for a set, a list.
