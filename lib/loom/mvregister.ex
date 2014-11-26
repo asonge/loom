@@ -138,7 +138,7 @@ defimpl Loom.CRDT, for: Loom.MVRegister do
   ["test","test2"]
 
   """
-  def join(a, %Reg{}=b), do: Reg.join(a, b)
+  def join(a, b), do: Reg.join(a, b)
 
   @doc """
   Returns the most natural value for a counter, an integer.
