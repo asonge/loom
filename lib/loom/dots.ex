@@ -101,6 +101,8 @@ defmodule Loom.Dots do
   end
   def remove(dots, value), do: remove(dots, &(&1==value))
 
+  def empty(d), do: remove(d)
+
   @doc """
   Removes all values from the set
   """

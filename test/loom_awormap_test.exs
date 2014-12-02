@@ -1,5 +1,5 @@
 defmodule LoomAwormapTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: false
   use Loom
 
   doctest Loom.AWORMap
@@ -8,8 +8,8 @@ defmodule LoomAwormapTest do
   test "Basic put" do
     ctr = GCounter.new
     {map, delta} = KVSet.new |> KVSet.put(:a, 1, ctr)
-    assert 0 == KVSet.get(map, 1, GCounter)
-    assert 0 == KVSet.get(map, 3, GCounter)
+    assert 0 == KVSet.get_value(map, 1, GCounter)
+    assert 0 == KVSet.get_value(map, 3, GCounter)
     assert true == KVSet.has_key?({map, delta}, 1, GCounter)
     assert false == KVSet.has_key?(map, 2, GCounter)
     assert %{ {1, Loom.GCounter} => 0 } == map |> KVSet.value
@@ -18,7 +18,7 @@ defmodule LoomAwormapTest do
   test "Basic put and delete" do
     ctr = GCounter.new
     {map, _} = KVSet.new |> KVSet.put(:a, 1, ctr)
-    assert 0 == KVSet.get(map, 1, ctr)
+    assert 0 == KVSet.get_value(map, 1, ctr)
     {map2, _} = KVSet.delete(map, 1, ctr)
     assert true == KVSet.has_key?(map, 1, GCounter)
     assert false == KVSet.has_key?(map, 2, GCounter)
