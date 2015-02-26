@@ -153,11 +153,11 @@ defimpl Loom.CRDT, for: Loom.MVRegister do
 
   This is for ops-based support.
 
-  iex> alias Loom.CRDT
-  iex> alias Loom.MVRegister, as: Reg
-  iex> reg = Reg.new |> CRDT.apply({:set, :a, "test"}) |> CRDT.apply({:set, :a, "testing"})
-  iex> CRDT.apply(reg, :value)
-  "testing"
+      iex> alias Loom.CRDT
+      iex> alias Loom.MVRegister, as: Reg
+      iex> reg = Reg.new |> CRDT.apply({:set, :a, "test"}) |> CRDT.apply({:set, :a, "testing"})
+      iex> CRDT.apply(reg, :value)
+      "testing"
 
   """
   def apply(crdt, {:set, actor, value}) do
@@ -172,11 +172,11 @@ defimpl Loom.CRDT, for: Loom.MVRegister do
   different counters and merge their semantics, as long as the datatype grows
   monotonically.
 
-  iex> alias Loom.CRDT
-  iex> a = Loom.MVRegister.new |> CRDT.apply({:set, :a, "test"})
-  iex> b = Loom.MVRegister.new |> CRDT.apply({:set, :b, "test2"})
-  iex> CRDT.join(a,b) |> CRDT.value |> Enum.sort
-  ["test","test2"]
+      iex> alias Loom.CRDT
+      iex> a = Loom.MVRegister.new |> CRDT.apply({:set, :a, "test"})
+      iex> b = Loom.MVRegister.new |> CRDT.apply({:set, :b, "test2"})
+      iex> CRDT.join(a,b) |> CRDT.value |> Enum.sort
+      ["test","test2"]
 
   """
   def join(a, b), do: Reg.join(a, b)
