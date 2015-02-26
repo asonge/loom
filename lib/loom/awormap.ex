@@ -59,10 +59,7 @@ defmodule Loom.AWORMap do
   @spec put(t, actor, key, crdt) :: t
   def put(%M{dots: d, delta: d_dots}=m, actor, key, crdt) do
     %{__struct__: struct_name} = crdt
-    new_crdt = case get(m, key, crdt) do
-      nil -> crdt
-      old_crdt -> CRDT.join(crdt, old_crdt)
-    end
+    new_crdt = CRDT.join(crdt, get(m, key, crdt))
     {new_dots, new_d_dots} = {d, d_dots}
                              |> Dots.remove(fn {dk, %{__struct__: ds}} ->
                                   dk == key && ds == struct_name
@@ -164,7 +161,6 @@ defmodule Loom.AWORMap do
   Checks if a key-module pair exists in the map already for the key.
   """
   @spec has_key?(t, key, module) :: boolean
-  def has_key?({set, %M{}}, key, module), do: has_key?(set, key, module)
   def has_key?(%M{dots: d}, key, module) do
     Dots.dots(d) |> Enum.any?(fn
       {_,{k, %{__struct__: m}}} when k == key and m == module -> true
@@ -238,6 +234,10 @@ defimpl Loom.CRDT, for: Loom.AWORMap do
       iex> alias Loom.CRDT
       iex> Loom.AWORMap.new |> CRDT.apply({:get_value, :none, Loom.LWWRegister})
       nil
+
+      iex> alias Loom.CRDT
+      iex> Loom.AWORMap.new |> CRDT.apply({:get, :none, Loom.LWWRegister})
+      %Loom.LWWRegister{}
 
       iex> alias Loom.CRDT
       iex> Loom.AWORMap.new |> CRDT.apply(:keys)
