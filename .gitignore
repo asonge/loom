@@ -3,5 +3,5 @@
 erl_crash.dump
 *.ez
 /cover
-/docs
+/doc
 mix-env

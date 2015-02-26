@@ -1,8 +1,8 @@
 defmodule Loom do
+  @moduledoc File.read!("./README.md")
 
   defmacro __using__(_) do
     quote do
-      alias Loom.Dot
       alias Loom.GCounter, as: GCounter
       alias Loom.PNCounter, as: Counter
       alias Loom.AWORSet, as: Set

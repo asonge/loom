@@ -9,7 +9,7 @@ defmodule Loom.Mixfile do
      elixir: "~> 1.0",
      deps: deps,
      test_coverage: [tool: ExCoveralls],
-     docs: [readme: true, main: "README"]
+    #  docs: [readme: true, main: "README"]
     ]
   end
 
@@ -32,10 +32,10 @@ defmodule Loom.Mixfile do
   defp deps do
     [
       {:dialyze, "~> 0.1.3", only: :dev},
-      {:earmark, ">= 0.0.0", only: :dev},
+      {:earmark, "~> 0.1", only: :dev},
       {:excheck, "~> 0.2.0", only: [:dev,:test]},
       {:excoveralls, "~> 0.3", only: :dev},
-      {:ex_doc, "~> 0.6", only: :dev},
+      {:ex_doc, "~> 0.7", only: :dev},
       {:triq, github: "krestenkrab/triq", only: [:dev,:test]},
       {:inch_ex, only: :dev},
     ]
