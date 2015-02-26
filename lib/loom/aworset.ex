@@ -43,6 +43,10 @@ defmodule Loom.AWORSet do
   @doc """
   Clear the delta from an AWORSet to preserve space. Do this after you sync
   "enough".
+
+      iex> alias Loom.AWORSet, as: Set
+      iex> Set.new |> Set.add(:a, 5) |> Set.clear_delta |> Set.delta == Set.new |> Set.delta
+      true
   """
   @spec clear_delta(t) :: t
   def clear_delta(%Set{}=set), do: %Set{set|delta: Dots.new}

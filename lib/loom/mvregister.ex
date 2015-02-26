@@ -39,6 +39,13 @@ defmodule Loom.MVRegister do
 
   @doc """
   Grab the delta from an MVRegister for lower-cost synchronization.
+
+      iex> alias Loom.MVRegister, as: Reg
+      iex> a = Reg.new |> Reg.set(:a, 5)
+      iex> delta_b = Reg.new |> Reg.set(:b, 2) |> Reg.delta
+      iex> Reg.join(a, delta_b) |> Reg.value |> Enum.sort
+      [2,5]
+
   """
   @spec delta(t) :: t
   def delta(%Reg{delta: delta}), do: %Reg{dots: delta}
@@ -46,6 +53,10 @@ defmodule Loom.MVRegister do
   @doc """
   Clear the delta from an MVRegister to preserve space. Do this after you sync
   "enough".
+
+      iex> alias Loom.MVRegister, as: Reg
+      iex> Reg.new |> Reg.set(:a, 5) |> Reg.clear_delta |> Reg.delta == Reg.new |> Reg.delta
+      true
   """
   @spec clear_delta(t) :: t
   def clear_delta(%Reg{}=reg), do: %Reg{reg|delta: Dots.new}

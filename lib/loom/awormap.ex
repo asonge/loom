@@ -43,6 +43,12 @@ defmodule Loom.AWORMap do
   @doc """
   You can use this to clear the delta from an AWORMap. Clearing the delta can
   help shrink the memory usage of this CRDT.
+
+      iex> alias Loom.AWORMap, as: Map
+      iex> alias Loom.PNCounter, as: Counter
+      iex> ctr = Counter.new |> Counter.inc(:a, 5) |> Counter.dec(:a, 3)
+      iex> Map.new |> Map.put(:a, "ctr", ctr) |> Map.clear_delta |> Map.delta == Map.new |> Map.delta
+      true
   """
   @spec clear_delta(t) :: t
   def clear_delta(%M{}=m), do: %M{m|delta: Dots.new}

@@ -1,0 +1,20 @@
+{
+  "default_stop_words": [
+    "defmodule",
+    "defrecord",
+    "defimpl",
+    "defexception",
+    "defprotocol",
+    "defstruct",
+    "def.+(.+\\\\.+).+do",
+    "^\\s+use\\s+"
+  ],
+
+  "custom_stop_words": [
+    "defmap"
+  ],
+
+  "coverage_options": {
+    "treat_no_relevant_lines_as_covered": false
+  }
+}
