@@ -8,7 +8,7 @@ defmodule Loom.TypedORMap do
   type.
   """
   defmacro defmap(type) do
-    type = Macro.expand_once(type, __ENV__)
+    type = Macro.expand(type, __CALLER__)
     name = :"#{type}Map"
     quote location: :keep do
 
