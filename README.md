@@ -1,7 +1,7 @@
 Loom
 ========
 [![Build Status](https://travis-ci.org/asonge/loom.svg?branch=master)](https://travis-ci.org/asonge/loom)
-[![Coverage Status](https://coveralls.io/repos/asonge/loom/badge.png?branch=master)](https://coveralls.io/r/asonge/loom?branch=master)
+[![Coverage Status](https://coveralls.io/repos/asonge/loom/badge.svg?branch=master)](https://coveralls.io/r/asonge/loom?branch=master)
 [![Docs Status](http://inch-ci.org/github/asonge/loom.svg?branch=master)](http://inch-ci.org/github/asonge/loom)
 [![Hex docs](http://img.shields.io/badge/hex.pm-docs-green.svg)](https://hexdocs.pm/loom)
 [![Current Release](https://img.shields.io/hexpm/v/loom.svg)](https://hex.pm/packages/loom)
