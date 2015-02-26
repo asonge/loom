@@ -12,13 +12,17 @@ defmodule Loom.MVRegister do
   """
 
   alias __MODULE__, as: Reg
-  alias Loom.AWORSet, as: Set
+  alias Loom.Dots
+
   @type actor :: term
+  @type value :: term
   @type t :: %Reg{
-    set: Set.t
+    dots: Dots.t,
+    keep_delta: boolean,
+    delta: Dots.t | nil
   }
 
-  defstruct set: Set.new()
+  defstruct dots: %Dots{}, keep_delta: true, delta: nil
 
   @doc """
   Returns a new MVRegister CRDT.
@@ -31,7 +35,20 @@ defmodule Loom.MVRegister do
 
   """
   @spec new :: t
-  def new, do: %Reg{}
+  def new, do: %Reg{delta: Dots.new}
+
+  @doc """
+  Grab the delta from an MVRegister for lower-cost synchronization.
+  """
+  @spec delta(t) :: t
+  def delta(%Reg{delta: delta}), do: %Reg{dots: delta}
+
+  @doc """
+  Clear the delta from an MVRegister to preserve space. Do this after you sync
+  "enough".
+  """
+  @spec clear_delta(t) :: t
+  def clear_delta(%Reg{}=reg), do: %Reg{reg|delta: Dots.new}
 
   @doc """
   Sets a value, erasing any current values.
@@ -44,28 +61,43 @@ defmodule Loom.MVRegister do
       "test2"
 
   """
-  @spec set(t, actor, term) :: {t, t}
-  @spec set({t,t}, actor, term) :: {t, t}
-  def set(%Reg{}=reg, actor, value), do: set({reg, Reg.new}, actor, value)
-  def set({%Reg{set: set}, %Reg{set: delta_set}}, actor, value) do
-    {new_set, new_delta_set} = {set, delta_set}
-                               |> Set.empty()
-                               |> Set.add(actor, value)
-    {%Reg{set: new_set}, %Reg{set: new_delta_set}}
+  @spec set(t, actor, term) :: t
+  def set(%Reg{dots: d, delta: delta}=reg, actor, value) do
+    {new_dots, new_delta_dots} = {d, delta}
+                                |> Dots.remove()
+                                |> Dots.add(actor, value)
+    %Reg{reg|dots: new_dots, delta: new_delta_dots}
   end
+
+  @doc """
+  Clear out an MVRegister
+
+      iex> alias Loom.MVRegister, as: Reg
+      iex> Reg.new
+      ...> |> Reg.set(:a, 1)
+      ...> |> Reg.empty()
+      ...> |> Reg.value
+      nil
+  """
+  @spec empty(t) :: t
+  def empty(%Reg{dots: d, delta: delta}=reg) do
+    {new_dots, new_delta_dots} = {d, delta} |> Dots.remove()
+    %Reg{reg|dots: new_dots, delta: new_delta_dots}
+  end
+
 
   @doc """
   Joins 2 MVRegisters
 
       iex> alias Loom.MVRegister, as: Reg
-      iex> {a, _} = Reg.new |> Reg.set(:a, "test") |> Reg.set(:a, "test2")
-      iex> {b, _} = Reg.new |> Reg.set(:b, "take over")
+      iex> a = Reg.new |> Reg.set(:a, "test") |> Reg.set(:a, "test2")
+      iex> b = Reg.new |> Reg.set(:b, "take over")
       iex> Reg.join(a, b) |> Reg.value
       ["test2", "take over"]
   """
   @spec join(t, t) :: t
-  def join(%Reg{set: set_a}, %Reg{set: set_b}) do
-    %Reg{set: Set.join(set_a, set_b)}
+  def join(%Reg{dots: d1}=reg, %Reg{dots: d2}) do
+    %Reg{reg|dots: Dots.join(d1, d2)}
   end
 
   @doc """
@@ -74,10 +106,9 @@ defmodule Loom.MVRegister do
   one thing, all values are returned in a list.
   """
   @spec value(t) :: [term] | term | nil
-  @spec value({t,t}) :: [term] | term | nil
-  def value({reg, _}), do: value(reg)
-  def value(%Reg{set: set}) do
-    case Set.value(set) do
+  def value(%Reg{dots: d}) do
+    values = (for {_, v} <- Dots.dots(d), do: v) |> Enum.uniq
+    case values do
       [] -> nil
       [singleton] -> singleton
       mv -> mv
@@ -119,8 +150,7 @@ defimpl Loom.CRDT, for: Loom.MVRegister do
 
   """
   def apply(crdt, {:set, actor, value}) do
-    {reg, _} = Reg.set(crdt, actor, value)
-    reg
+    Reg.set(crdt, actor, value)
   end
   def apply(crdt, :value), do: Reg.value(crdt)
 

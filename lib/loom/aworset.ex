@@ -1,7 +1,4 @@
 defmodule Loom.AWORSet do
-  alias Loom.AWORSet, as: Set
-  alias Loom.Dots
-
   @moduledoc """
   An add-removed (optimized) observed-remove set (without tombstones).
 
@@ -11,13 +8,18 @@ defmodule Loom.AWORSet do
   MVRegister.
   """
 
+  alias __MODULE__, as: Set
+  alias Loom.Dots
+
   @type actor :: term
   @type value :: term
   @opaque t :: %Set{
-    dots: Dots.t
+    dots: Dots.t,
+    keep_delta: boolean,
+    delta: Dots.t | nil
   }
 
-  defstruct dots: %Dots{}
+  defstruct dots: %Dots{}, keep_delta: true, delta: nil
 
   @doc """
   Creates a new AWORSet
@@ -30,7 +32,20 @@ defmodule Loom.AWORSet do
 
   """
   @spec new() :: t
-  def new, do: %Set{dots: Dots.new}
+  def new, do: %Set{dots: Dots.new, delta: Dots.new}
+
+  @doc """
+  Grab the delta from an AWORSet for lower-cost synchronization.
+  """
+  @spec delta(t) :: t
+  def delta(%Set{delta: delta}), do: %Set{dots: delta}
+
+  @doc """
+  Clear the delta from an AWORSet to preserve space. Do this after you sync
+  "enough".
+  """
+  @spec clear_delta(t) :: t
+  def clear_delta(%Set{}=set), do: %Set{set|delta: Dots.new}
 
   @doc """
   Add an element to an AWORSet
@@ -39,14 +54,12 @@ defmodule Loom.AWORSet do
       iex> Set.new |> Set.add(:a, 1) |> Set.add(:b, 2) |> Set.value |> Enum.sort
       [1,2]
   """
-  @spec add(t, actor, value) :: {t,t}
-  @spec add({t,t}, actor, value) :: {t,t}
-  def add(%Set{}=set, actor, value), do: add({set, Set.new}, actor, value)
-  def add({%Set{dots: d}, %Set{dots: delta_dots}}, actor, value) do
+  @spec add(t, actor, value) :: t
+  def add(%Set{dots: d, delta: delta_dots}=set, actor, value) do
     {new_dots, new_delta_dots} = {d, delta_dots}
                                |> Dots.remove(value)
                                |> Dots.add(actor, value)
-    {%Set{dots: new_dots}, %Set{dots: new_delta_dots}}
+    %Set{set|dots: new_dots, delta: new_delta_dots}
   end
 
   @doc """
@@ -60,13 +73,11 @@ defmodule Loom.AWORSet do
       ...> |> Set.value
       [2]
   """
-  @spec remove(t, value) :: {t,t}
-  @spec remove({t,t}, value) :: {t,t}
-  def remove(%Set{}=set, value), do: remove({set, Set.new}, value)
-  def remove({%Set{dots: d}=set, %Set{dots: delta_dots}}, value) do
+  @spec remove(t, value) :: t
+  def remove(%Set{dots: d, delta: delta_dots}=set, value) do
     if member?(set, value) do
       {new_dots, new_delta_dots} = {d, delta_dots} |> Dots.remove(value)
-      {%Set{dots: new_dots}, %Set{dots: new_delta_dots}}
+      %Set{dots: new_dots, delta: new_delta_dots}
     else
       raise Loom.PreconditionError, unobserved: value
     end
@@ -82,26 +93,24 @@ defmodule Loom.AWORSet do
       ...> |> Set.value
       []
   """
-  @spec empty(t) :: {t,t}
-  @spec empty({t,t}) :: {t,t}
-  def empty(%Set{}=set), do: empty({set, Set.new})
-  def empty({%Set{dots: d}=set, %Set{dots: delta_dots}}) do
+  @spec empty(t) :: t
+  def empty(%Set{dots: d, delta: delta_dots}=set) do
     {new_dots, new_delta_dots} = Dots.remove({d, delta_dots})
-    {%Set{dots: new_dots}, %Set{dots: new_delta_dots}}
+    %Set{set|dots: new_dots, delta: new_delta_dots}
   end
 
   @doc """
   Join 2 CRDTs together
 
       iex> alias Loom.AWORSet, as: Set
-      iex> {a, _} = Set.new |> Set.add(:a, 1)
-      iex> {b, _} = Set.new |> Set.add(:b, 2)
+      iex> a = Set.new |> Set.add(:a, 1)
+      iex> b = Set.new |> Set.add(:b, 2)
       iex> Set.join(a, b) |> Set.value |> Enum.sort
       [1,2]
   """
   @spec join(t,t) :: t
-  def join(%Set{dots: d1}, %Set{dots: d2}) do
-    %Set{dots: Dots.join(d1, d2)}
+  def join(%Set{dots: d1}=set, %Set{dots: d2}) do
+    %Set{set|dots: Dots.join(d1, d2)}
   end
 
   @doc """
@@ -114,9 +123,7 @@ defmodule Loom.AWORSet do
       true
 
   """
-  @spec member?({t, t}, value) :: boolean
   @spec member?(t, value) :: boolean
-  def member?({set, %Set{}}, value), do: member?(set, value)
   def member?(%Set{dots: d}, value) do
     Dots.dots(d) |> Enum.any?(fn {_, v} -> v == value end)
   end
@@ -126,9 +133,7 @@ defmodule Loom.AWORSet do
 
   See other examples for details.
   """
-  @spec value({t,t}) :: [value]
   @spec value(t) :: [value]
-  def value({set, %Set{}}), do: value(set)
   def value(%Set{dots: d}) do
     (for {_, v} <- Dots.dots(d), do: v) |> Enum.uniq
   end
@@ -170,12 +175,10 @@ defimpl Loom.CRDT, for: Loom.AWORSet do
 
   """
   def apply(crdt, {:add, actor, value}) do
-    {reg, _} = Set.add(crdt, actor, value)
-    reg
+    Set.add(crdt, actor, value)
   end
   def apply(crdt, {:remove, value}) do
-    {reg, _} = Set.remove(crdt, value)
-    reg
+    Set.remove(crdt, value)
   end
   def apply(crdt, {:is_member, value}), do: Set.member?(crdt, value)
   def apply(crdt, :value), do: Set.value(crdt)

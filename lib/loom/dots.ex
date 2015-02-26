@@ -101,7 +101,12 @@ defmodule Loom.Dots do
   end
   def remove(dots, value), do: remove(dots, &(&1==value))
 
-  def empty(d), do: remove(d)
+  @doc """
+  Removes all values from the set, but preserves the context.
+  """
+  def empty({%Dots{cloud: cloud}=dots, delta_dots}) do
+    {%Dots{dots|dots: %{}}, join(%Dots{cloud: cloud}, delta_dots)}
+  end
 
   @doc """
   Removes all values from the set

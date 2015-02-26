@@ -5,7 +5,7 @@ defmodule Loom.Mixfile do
     [app: :loom,
      description: "A modern CRDT library that uses protocols to create composable CRDTs.",
      package: package,
-     version: "0.0.11-dev",
+     version: "0.1.0-dev",
      elixir: "~> 1.0",
      deps: deps,
      test_coverage: [tool: ExCoveralls],
@@ -37,7 +37,7 @@ defmodule Loom.Mixfile do
       {:excoveralls, "~> 0.3", only: :dev},
       {:ex_doc, "~> 0.6", only: :dev},
       {:triq, github: "krestenkrab/triq", only: [:dev,:test]},
-      {:inch_ex, only: :docs},
+      {:inch_ex, only: :dev},
     ]
   end
 
