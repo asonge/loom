@@ -41,6 +41,8 @@ defmodule LoomLwwregisterTest do
     a = Reg.new("a")
     b = Reg.new("b", nil)
     ab_value = a |> Reg.join(b) |> Reg.value
+    ba_value = b |> Reg.join(a) |> Reg.value
     assert "a" == ab_value
+    assert "a" == ba_value
   end
 end
