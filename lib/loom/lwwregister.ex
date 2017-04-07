@@ -101,8 +101,8 @@ defmodule Loom.LWWRegister do
   """
   @spec join(t, t) :: t
   def join(a, a), do: a
-  def join(a, %Reg{clock: nil}=b), do: a
-  def join(%Reg{clock: nil}=a, b), do: b
+  def join(a, %Reg{clock: nil}), do: a
+  def join(%Reg{clock: nil}, b), do: b
   def join(%Reg{clock: c}=a, %Reg{clock: c}=b) do
     if a > b, do: a, else: b
   end
