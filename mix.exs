@@ -36,7 +36,7 @@ defmodule Loom.Mixfile do
       {:excheck, "~> 0.2.0", only: [:dev,:test]},
       {:excoveralls, "~> 0.3", only: :dev},
       {:ex_doc, "~> 0.7", only: :dev},
-      {:triq, github: "krestenkrab/triq", only: [:dev,:test]},
+      {:triq, github: "triqng/triq", only: [:dev,:test]},
       {:inch_ex, only: :dev},
     ]
   end
