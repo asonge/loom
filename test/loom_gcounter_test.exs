@@ -21,8 +21,8 @@ defmodule LoomGcounterTest do
   #     IO.inspect {:call, :inc, [actor, int]}
   #     IO.inspect val[actor]
   #     val
-  #     |> Dict.put(:flat, f+int)
-  #     |> Dict.put(actor, Counter.inc(val[actor], actor, int))
+  #     |> Map.put(:flat, f+int)
+  #     |> Map.put(actor, Counter.inc(val[actor], actor, int))
   #   end
   #
   #   def precondition(val, {:call, _, :inc, [_, _]}) do

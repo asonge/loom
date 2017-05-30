@@ -1,7 +1,7 @@
 defmodule Loom.PNCounter do
   @moduledoc """
   Positive-negative counters
-  
+
   PNCounters are counters that are capable of incrementing and decrementing.
   They are useful for like counters, where a user may like and then unlike
   something in succession.
@@ -55,8 +55,8 @@ defmodule Loom.PNCounter do
     end
     {p, n} = Enum.reduce(values, {%{},%{}}, fn {actor, {inc,dec}}, {p, n} ->
                 {
-                  (if inc, do: Dict.put(p, actor, inc), else: p),
-                  (if dec, do: Dict.put(n, actor, dec), else: n)
+                  (if inc, do: Map.put(p, actor, inc), else: p),
+                  (if dec, do: Map.put(n, actor, dec), else: n)
                 }
               end)
     %Counter{p: p, n: n}
@@ -106,7 +106,7 @@ defmodule Loom.PNCounter do
   """
   @spec value(t) :: integer
   def value(%Counter{p: p, n: n}) do
-    (Dict.values(p) |> Enum.sum) - (Dict.values(n) |> Enum.sum)
+    (Map.values(p) |> Enum.sum) - (Map.values(n) |> Enum.sum)
   end
 
   @doc """
@@ -122,8 +122,8 @@ defmodule Loom.PNCounter do
   @spec join(t, t) :: t
   def join(%Counter{p: p1, n: n1}, %Counter{p: p2, n: n2}) do
     %Counter{
-      p: Dict.merge(p1, p2, fn (_,v1,v2) -> max(v1,v2) end),
-      n: Dict.merge(n1, n2, fn (_,v1,v2) -> max(v1,v2) end)
+      p: Map.merge(p1, p2, fn (_,v1,v2) -> max(v1,v2) end),
+      n: Map.merge(n1, n2, fn (_,v1,v2) -> max(v1,v2) end)
     }
   end
 
