@@ -4,10 +4,10 @@ defmodule Loom.Mixfile do
   def project do
     [app: :loom,
      description: "A modern CRDT library that uses protocols to create composable CRDTs.",
-     package: package,
+     package: package(),
      version: "0.1.0-dev",
      elixir: "~> 1.0",
-     deps: deps,
+     deps: deps(),
      test_coverage: [tool: ExCoveralls],
     #  docs: [readme: true, main: "README"]
     ]

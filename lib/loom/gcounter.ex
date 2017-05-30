@@ -46,7 +46,7 @@ defmodule Loom.GCounter do
   """
   @spec new([values: [{actor, pos_integer}]]) :: t
   def new(opts) do
-    new_values = Keyword.get(opts, :values, []) |> Enum.into %{}
+    new_values = Keyword.get(opts, :values, []) |> Enum.into(%{})
     %Counter{counter: new_values}
   end
 
@@ -71,7 +71,7 @@ defmodule Loom.GCounter do
   """
   @spec value(t) :: non_neg_integer
   def value(%Counter{counter: c}) do
-    Dict.values(c) |> Enum.sum
+    Map.values(c) |> Enum.sum
   end
 
   @doc """
@@ -88,7 +88,7 @@ defmodule Loom.GCounter do
   """
   @spec join(t, t) :: t
   def join(%Counter{counter: c1}, %Counter{counter: c2}) do
-    %Counter{counter: Dict.merge(c1, c2, fn (_,v1,v2) -> max(v1,v2) end)}
+    %Counter{counter: Map.merge(c1, c2, fn (_,v1,v2) -> max(v1,v2) end)}
   end
 
 end

@@ -66,14 +66,14 @@ defmodule Loom.Dots do
   """
   @spec add({t, t}, actor, value) :: {t, t}
   def add({%Dots{dots: d, ctx: ctx}=dots, delta_dots}, actor, value) do
-    clock = Dict.get(ctx, actor, 0) + 1 # What's the value of our clock?
+    clock = Map.get(ctx, actor, 0) + 1 # What's the value of our clock?
     dot = {actor, clock}
     new_dots = %Dots{dots|
-      dots: Dict.put(d, dot, value), # Add the value to the dot values
-      ctx: Dict.put(ctx, actor, clock) # Add the actor/clock to the context
+      dots: Map.put(d, dot, value), # Add the value to the dot values
+      ctx: Map.put(ctx, actor, clock) # Add the actor/clock to the context
     }
     # A new changeset
-    new_delta = %Dots{dots: Dict.put(%{}, dot, value), cloud: [dot]}
+    new_delta = %Dots{dots: Map.put(%{}, dot, value), cloud: [dot]}
               |> join(delta_dots)
               |> compact
     {new_dots, new_delta}
@@ -90,7 +90,7 @@ defmodule Loom.Dots do
         {d, [dot|cloud]}
       else
         # Reinsert, don't worry about causation dot
-        {Dict.put(d, dot, v), cloud}
+        {Map.put(d, dot, v), cloud}
       end
     end)
     new_dots = %Dots{dots|dots: new_d}
@@ -114,7 +114,7 @@ defmodule Loom.Dots do
   @spec remove({t, t}) :: {t, t}
   def remove({%Dots{dots: d}=dots, %Dots{}=delta}) do
     new_dots = %Dots{dots|dots: %{}}
-    new_delta = join(delta, %Dots{cloud: Dict.keys(d)})
+    new_delta = join(delta, %Dots{cloud: Map.keys(d)})
     {new_dots, new_delta}
   end
 
@@ -130,13 +130,13 @@ defmodule Loom.Dots do
     case {ctx[actor], clock} do
       {nil, 1} ->
         # We can merge nil with 1 in the cloud
-        compact_reduce(cloud, Dict.put(ctx, actor, clock), cloud_acc)
+        compact_reduce(cloud, Map.put(ctx, actor, clock), cloud_acc)
       {nil, _} ->
         # Can't do anything with this
         compact_reduce(cloud, ctx, [dot|cloud_acc])
       {ctx_clock, _} when ctx_clock + 1 == clock ->
         # Add to context, delete from cloud
-        compact_reduce(cloud, Dict.put(ctx, actor, clock), cloud_acc)
+        compact_reduce(cloud, Map.put(ctx, actor, clock), cloud_acc)
       {ctx_clock, _} when ctx_clock >= clock -> # Dominates
         # Delete from cloud by not accumulating.
         compact_reduce(cloud, ctx, cloud_acc)
@@ -148,7 +148,7 @@ defmodule Loom.Dots do
 
   defp do_join(%Dots{dots: d1, ctx: ctx1, cloud: c1}=dots1, %Dots{dots: d2, ctx: ctx2, cloud: c2}=dots2) do
     new_dots = do_join_dots(Enum.sort(d1), Enum.sort(d2), {dots1, dots2}, [])
-    new_ctx = Dict.merge(ctx1, ctx2, fn (_, a, b) -> max(a, b) end)
+    new_ctx = Map.merge(ctx1, ctx2, fn (_, a, b) -> max(a, b) end)
     new_cloud = Enum.uniq(c1 ++ c2)
     compact(%Dots{dots: new_dots, ctx: new_ctx, cloud: new_cloud})
   end
@@ -159,14 +159,14 @@ defmodule Loom.Dots do
     # Remove when the other knows about our dots in context/cloud, but isn't in
     # their dot values list (they observed a remove)
     new_d1 = Enum.reject(d1, fn ({dot, _}) -> dotin(dots2, dot) end)
-    Enum.reverse(acc, new_d1) |> Enum.into %{}
+    Enum.reverse(acc, new_d1) |> Enum.into(%{})
   end
   # If we run out of d1
   defp do_join_dots([], d2, {dots1, _}, acc) do
     # Add dot when it is only at the other side. This happens when they've got
     # values that we do not.
     new_d1 = Enum.reject(d2, fn ({dot, _}) -> dotin(dots1, dot) end)
-    Enum.reverse(acc, new_d1) |> Enum.into %{}
+    Enum.reverse(acc, new_d1) |> Enum.into(%{})
   end
   # Always advance d1 when dot1 < dot2
   defp do_join_dots([{dot1,value1}|d1], [{dot2,_}|_]=d2, {_, dots2}=dots, acc) when dot1 < dot2 do
