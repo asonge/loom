@@ -174,10 +174,10 @@ defmodule Loom.AWORMap do
   @spec value(t) :: [{key,term}] | nil
   def value(%M{dots: d}) do
     res = Enum.reduce(Dots.dots(d), %{}, fn {_, {k, %{__struct__: module}=crdt}}, values ->
-            Dict.update(values, {k, module}, crdt, &CRDT.join(crdt,&1))
+            Map.update(values, {k, module}, crdt, &CRDT.join(crdt,&1))
           end)
           |> Enum.map(fn {k,v} -> {k, CRDT.value(v)} end)
-          |> Enum.into %{}
+          |> Enum.into(%{})
     case map_size(res) do
       0 -> nil
       _ -> res

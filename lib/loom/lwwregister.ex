@@ -38,7 +38,7 @@ defmodule Loom.LWWRegister do
 
   """
   @spec new(term) :: t
-  def new(value), do: new |> set(value)
+  def new(value), do: new() |> set(value)
 
   @doc """
   Returns a new LWWRegister CRDT. Initializes to `value` with another clock
@@ -48,7 +48,7 @@ defmodule Loom.LWWRegister do
 
   """
   @spec new(term, pos_integer) :: t
-  def new(value, clock), do: new |> set(value, clock)
+  def new(value, clock), do: new() |> set(value, clock)
 
 
   @doc """
@@ -62,7 +62,7 @@ defmodule Loom.LWWRegister do
 
   """
   @spec set(t, term) :: t
-  def set(reg, value), do: set(reg, value, make_microtime)
+  def set(reg, value), do: set(reg, value, make_microtime())
 
   @doc """
   Set a value according to your own clock.
